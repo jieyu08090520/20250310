@@ -1,6 +1,7 @@
 let radio;
 let button;
 let restartButton;
+let input;
 let questions = [];
 let currentQuestionIndex = 0;
 let correctAnswer;
@@ -24,11 +25,12 @@ function setup() {
   radio.style('font-size', '20px');
   radio.style('display', 'block');
   
-  // 調整選項的垂直排列
-  let options = radio.elt.querySelectorAll('input');
-  options.forEach(option => {
-    option.parentElement.style.display = 'block';
-  });
+  // 建立填充題輸入框
+  input = createInput();
+  input.position(windowWidth / 2 - 100, windowHeight / 2 - 20);
+  input.style('width', '400px');
+  input.style('font-size', '20px');
+  input.hide();
   
   // 建立按鈕物件
   button = createButton('提交');
@@ -65,6 +67,7 @@ function draw() {
     
     // 移除選項和按鈕
     radio.hide();
+    input.hide();
     button.hide();
     
     // 顯示重新開始按鈕
@@ -83,18 +86,35 @@ function draw() {
 
 function showQuestion() {
   radio.html('');
+  input.hide();
   let question = questions.getString(currentQuestionIndex, 'question');
   let options = questions.getString(currentQuestionIndex, 'options').split(';');
   correctAnswer = questions.getString(currentQuestionIndex, 'answer');
+  let type = questions.getString(currentQuestionIndex, 'type');
   
-  options.forEach(option => {
-    let optionLabel = option.replace(/\s+/g, ' ');
-    radio.option(optionLabel);
-  });
+  print(type)
+  if (type === 'fill') {
+    // 顯示填充題
+    input.show();
+  } else {
+    // 顯示選擇題
+    options.forEach(option => {
+      let optionLabel = option.replace(/\s+/g, ' ');
+      radio.option(optionLabel);
+    });
+    radio.show();
+  }
 }
 
 function checkAnswer() {
-  let answer = radio.value();
+  let answer;
+  let type = questions.getString(currentQuestionIndex, 'type');
+  if (type === 'fill') {
+    answer = input.value();
+  } else {
+    answer = radio.value();
+  }
+  
   if (answer) {
     if (answer === correctAnswer) {
       resultText = '答對了！';
@@ -119,6 +139,7 @@ function restartQuiz() {
   incorrectCount = 0;
   resultText = '';
   radio.show();
+  input.hide();
   button.show();
   restartButton.remove();
   restartButton = null;
